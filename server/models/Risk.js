@@ -12,7 +12,9 @@ const RiskSchema = new mongoose.Schema({
   description: {
     type: String,
     trim: true,
-    maxlength: 500
+    maxlength: 500,
+    required: [true, 'Description is required'],
+    minlength: [10, 'Description too short']
   },
   impact: {
     type: Number,
@@ -39,6 +41,16 @@ const RiskSchema = new mongoose.Schema({
   mitigationPlan: {
     type: String,
     trim: true
+  },
+  targetDate: {
+    type: Date,
+    required: false,
+    validate: {
+      validator: function(value) {
+        return !value || value > Date.now();
+      },
+      message: 'Target date must be in the future'
+    },
   },
   status: {
     type: String,

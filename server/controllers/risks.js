@@ -1,18 +1,26 @@
 import Risk from '../models/Risk.js';
+import { checkDuplicateRisk } from '../utils/riskDuplicateChecker.js';
 
 export const createRisk = async (req, res) => {
   try {
-    const risk = new Risk({
-      ...req.body,
-      owner: req.user._id
-    });
+    const { title, description, impact, probability, severity, mitigationPlan, owner, targetDate, status } = req.body;
 
-    await risk.save();
+    const existingRisks = await Risk.find({}, 'description');
+    const existingDescriptions = existingRisks.map(r => r.description).filter(desc => typeof desc === 'string' && desc.trim().length > 0);
+        console.log(existingDescriptions)
 
-    res.status(201).json({
-      success: true,
-      data: risk
-    });
+
+    const { isDuplicate, reason } = checkDuplicateRisk(description, existingDescriptions);
+
+    if (isDuplicate) {
+      return res.status(409).json({ success: false, message: 'Duplicate risk detected.', reason });
+    }
+
+    const newRisk = new Risk({ ...req.body, owner: req.user._id });
+    await newRisk.save();
+
+    res.status(201).json({ success: true, data: newRisk });
+
   } catch (err) {
     res.status(400).json({
       success: false,
