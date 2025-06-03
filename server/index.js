@@ -1,26 +1,54 @@
-// server/index.js
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+import express from 'express';
+import mongoose from 'mongoose';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+import risksRouter from './routes/risks.js';
+import usersRouter from './routes/users.js';
+
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(helmet());
+app.use(morgan('dev'));
 
-// Mock risk data
-const risks = [
-  { id: 1, name: "Data Breach", score: 8 },
-  { id: 2, name: "Supply Chain Disruption", score: 6 },
-];
+// Database connection
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('MongoDB connected');
+  } catch (err) {
+    console.error('Database connection error:', err.message);
+    process.exit(1);
+  }
+};
 
-// API Routes
-app.get('/api/risks', (req, res) => {
-  res.json(risks);
+// Routes
+app.use('/api/risks', risksRouter);
+app.use('/api/users', usersRouter);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    error: 'Server error'
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+
+const startServer = async () => {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+};
+
+startServer();
