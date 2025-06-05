@@ -1,0 +1,50 @@
+name: CI - ERM Server
+
+on:
+  push:
+    branches:
+      - main # Or 'master', 'develop', etc.
+    paths:
+      - 'server/**' # Trigger only if changes are in the 'server/' directory
+      - '.github/workflows/server-ci.yml' # Also trigger if this workflow file changes
+  pull_request:
+    branches:
+      - main # Or 'master', 'develop', etc.
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
+
+jobs:
+  build_and_test_server:
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Action to check out your repository code
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 # Action to set up Node.js environment
+        with:
+          node-version: '20' # Specify your Node.js version (e.g., 18, 20, 22)
+          cache: 'npm' # Cache npm dependencies for faster builds
+          cache-dependency-path: 'server/package-lock.json' # Path to your server's lock file
+
+      - name: Install Server Dependencies
+        run: npm ci # 'npm ci' ensures a clean install based on package-lock.json
+        working-directory: ./server # Execute this command inside the 'server' directory
+
+      - name: Run Server Lint
+        run: npm run lint # Assumes you have a 'lint' script in server/package.json
+        working-directory: ./server
+
+      - name: Run Server Tests
+        run: npm test # Assumes you have a 'test' script in server/package.json
+        working-directory: ./server
+        env:
+          # Pass sensitive environment variables as secrets to the tests
+          # ONLY if your tests actually need to interact with these services.
+          # For unit tests, mocks are often preferred.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          # Add any other environment variables your server needs for tests (e.g., JWT_SECRET)
+          # JWT_SECRET: ${{ secrets.JWT_SECRET }}
