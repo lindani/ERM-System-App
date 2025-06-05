@@ -16,6 +16,11 @@ const RiskSchema = new mongoose.Schema({
     required: [true, 'Description is required'],
     minlength: [10, 'Description too short']
   },
+  embedding: {
+    type: [Number],
+    required: false,
+    index: true,
+  },
   impact: {
     type: Number,
     min: [1, 'Impact must be at least 1'],
