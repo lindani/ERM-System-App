@@ -35,7 +35,7 @@ app.use('/api/risks', risksRouter);
 app.use('/api/users', usersRouter);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error(err.stack);
   res.status(500).json({
     success: false,
