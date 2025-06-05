@@ -1,22 +1,38 @@
 import Risk from '../models/Risk.js';
-import { checkDuplicateRisk } from '../utils/riskDuplicateChecker.js';
+import { checkDuplicateRisk, getEmbedding } from '../utils/riskDuplicateChecker.js';
 
 export const createRisk = async (req, res) => {
+  const { description } = req.body;
+
   try {
-    const { title, description, impact, probability, severity, mitigationPlan, owner, targetDate, status } = req.body;
+    const fetchedExistingRisks = await Risk.find({}, 'description embedding').lean();
+    const preparedExistingRisks = fetchedExistingRisks
+      .filter(risk => risk && typeof risk.description === 'string' && risk.description.trim().length > 0)
+      .map(risk => ({
+        id: risk._id.toString(), // Convert MongoDB's ObjectId to a string
+        description: risk.description,
+        embedding: risk.embedding || null // Make sure to pass the embedding if it exists!
+      }));
 
-    const existingRisks = await Risk.find({}, 'description');
-    const existingDescriptions = existingRisks.map(r => r.description).filter(desc => typeof desc === 'string' && desc.trim().length > 0);
-        console.log(existingDescriptions)
+    console.log(`Fetched and prepared ${preparedExistingRisks.length} risks.`);
 
-
-    const { isDuplicate, reason } = checkDuplicateRisk(description, existingDescriptions);
+    const { isDuplicate, reason, matchedRisk } = await checkDuplicateRisk(description, preparedExistingRisks);
 
     if (isDuplicate) {
-      return res.status(409).json({ success: false, message: 'Duplicate risk detected.', reason });
+      console.log('Duplicate risk detected:', reason);
+      return res.status(409).json({
+        message: 'This risk appears to be similar to an existing one. Please review.',
+        details: reason,
+        matchedRisk: matchedRisk
+      });
+    }
+    const newRiskEmbedding = await getEmbedding(description);
+
+    if (!newRiskEmbedding) {
+      console.warn("Failed to generate embedding for new risk. Saving without embedding. Future duplicate checks for this risk might be less effective.");
     }
 
-    const newRisk = new Risk({ ...req.body, owner: req.user._id });
+    const newRisk = new Risk({ ...req.body, owner: req.user._id, embedding: newRiskEmbedding });
     await newRisk.save();
 
     res.status(201).json({ success: true, data: newRisk });
