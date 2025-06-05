@@ -3,8 +3,6 @@ import 'dotenv/config'; // Loads environment variables from .env
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// const genAI = new GoogleGenerativeAI("AIzaSyD_F2OF49vl6nIWF50s_51Z0CJFoQQYGxo");
-
 const embeddingModel = genAI.getGenerativeModel({ model: 'embedding-001' });
 
 /**
@@ -32,7 +30,7 @@ export const getEmbedding = async (text) => {
  * @param {number[]} vec2 The second vector.
  * @returns {number} The cosine similarity score.
  */
-function cosineSimilarity(vec1, vec2) {
+const cosineSimilarity = (vec1, vec2) => {
   if (!vec1 || !vec2 || vec1.length !== vec2.length) {
     return 0; // Invalid input
   }
