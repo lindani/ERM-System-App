@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "jest --detectOpenHandles --forceExit",
+    "test": "jest __tests__",
     "lint": "eslint . --config ./eslint.config.js"
   },
   "keywords": [],
