@@ -5,12 +5,10 @@ import globals from 'globals';
 export default [
   {
     ignores: [
-      "node_modules/",           // Always ignore node_modules
-      "**/__tests__/**",         // Ignore any files within __tests__ subdirectories
-      "**/*.test.{js,mjs,cjs}",  // Ignore files named *.test.js, *.test.mjs, *.test.cjs
-      "**/*.spec.{js,mjs,cjs}"   // Ignore files named *.spec.js, *.spec.mjs, *.spec.cjs
-      // Add any other top-level files or directories you want ESLint to completely skip
-      // e.g., "build/", "dist/"
+      "node_modules/",
+      "**/__tests__/**",
+      "**/*.test.{js,mjs,cjs}",
+      "**/*.spec.{js,mjs,cjs}"
     ],
   },
   {
@@ -24,6 +22,17 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
+    },
+  },
+  {
+    files: ['**/__tests__/**/*.js', '**/*.test.js', '**/*.spec.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
     },
   },
 ];
