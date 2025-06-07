@@ -54,6 +54,13 @@ jobs:
         run: npx eslint . --config ./eslint.config.js
         working-directory: ./server
 
+      - name: Confirm test file exists in CI
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Listing all test files:"
+          find . -name "*.test.js"
+        working-directory: ./server
+
       - name: Run Server Tests
         run: npm test
         working-directory: ./server
