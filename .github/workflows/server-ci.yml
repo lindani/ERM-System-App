@@ -5,8 +5,8 @@ on:
     branches:
       - main # Or 'master', 'develop', etc.
     paths:
-      - 'server/**' # Trigger only if changes are in the 'server/' directory
-      - '.github/workflows/server-ci.yml' # Also trigger if this workflow file changes
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
   pull_request:
     branches:
       - main # Or 'master', 'develop', etc.
@@ -16,35 +16,50 @@ on:
 
 jobs:
   build_and_test_server:
-    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # Action to check out your repository code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4 # Action to set up Node.js environment
+        uses: actions/setup-node@v4
         with:
-          node-version: '20' # Specify your Node.js version (e.g., 18, 20, 22)
-          cache: 'npm' # Cache npm dependencies for faster builds
-          cache-dependency-path: 'server/package-lock.json' # Path to your server's lock file
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'server/package-lock.json'
+
+      # --- AGGRESSIVE CACHE CLEARING (New Step) ---
+      - name: Clear npm cache (Force clean)
+        run: npm cache clean --force
+        working-directory: ./server
+        # Important: Add 'if: always()' to ensure this runs even if previous steps fail,
+        # but for clean-up *before* install, it should run normally.
 
       - name: Install Server Dependencies
-        run: npm ci # 'npm ci' ensures a clean install based on package-lock.json
-        working-directory: ./server # Execute this command inside the 'server' directory
-
-      - name: Run Server Lint
-        run: npm run lint # Assumes you have a 'lint' script in server/package.json
+        run: npm ci
         working-directory: ./server
+
+      # --- DIAGNOSTIC STEP (New Step) ---
+      - name: List files in server directory (for debugging)
+        run: |
+          echo "Files in server/ directory:"
+          ls -R .
+          echo "Files in server/__tests__/ directory:"
+          ls -R __tests__
+        working-directory: ./server
+
+      # --- LINTING STEP (Your existing step) ---
+      - name: Run Server Lint
+        run: npm run lint
+        working-directory: ./server
+        # Optional: For deep debugging if linting still fails, you can add --debug
+        # run: npm run lint -- --debug
+
 
       - name: Run Server Tests
-        run: npm test # Assumes you have a 'test' script in server/package.json
+        run: npm test
         working-directory: ./server
         env:
-          # Pass sensitive environment variables as secrets to the tests
-          # ONLY if your tests actually need to interact with these services.
-          # For unit tests, mocks are often preferred.
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
-          # Add any other environment variables your server needs for tests (e.g., JWT_SECRET)
-          # JWT_SECRET: ${{ secrets.JWT_SECRET }}
