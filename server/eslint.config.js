@@ -4,25 +4,17 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: [
-      "node_modules/",
-      "**/__tests__/**",
-      "**/*.test.{js,mjs,cjs}",
-      "**/*.spec.{js,mjs,cjs}"
-    ],
-  },
-  {
-    files: ['**/*.{js,mjs,cjs}'],
+    files: ['**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
-        ...globals.node,
-      },
+        ...globals.node
+      }
     },
     rules: {
-      ...js.configs.recommended.rules,
-    },
+      ...js.configs.recommended.rules
+    }
   },
   {
     files: ['**/__tests__/**/*.js', '**/*.test.js', '**/*.spec.js'],
@@ -31,8 +23,8 @@ export default [
       sourceType: 'module',
       globals: {
         ...globals.node,
-        ...globals.jest,
-      },
-    },
-  },
+        ...globals.jest
+      }
+    }
+  }
 ];

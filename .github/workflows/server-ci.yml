@@ -3,13 +3,13 @@ name: CI - ERM Server
 on:
   push:
     branches:
-      - main # Or 'master', 'develop', etc.
+      - main
     paths:
       - 'server/**'
       - '.github/workflows/server-ci.yml'
   pull_request:
     branches:
-      - main # Or 'master', 'develop', etc.
+      - main
     paths:
       - 'server/**'
       - '.github/workflows/server-ci.yml'
@@ -29,33 +29,30 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'server/package-lock.json'
 
-      # --- AGGRESSIVE CACHE CLEARING (New Step) ---
       - name: Clear npm cache (Force clean)
         run: npm cache clean --force
         working-directory: ./server
-        # Important: Add 'if: always()' to ensure this runs even if previous steps fail,
-        # but for clean-up *before* install, it should run normally.
 
       - name: Install Server Dependencies
         run: npm ci
         working-directory: ./server
 
-      # --- DIAGNOSTIC STEP (New Step) ---
-      - name: List files in server directory (for debugging)
+      - name: List files and print eslint.config.js
         run: |
-          echo "Files in server/ directory:"
-          ls -R .
-          echo "Files in server/__tests__/ directory:"
-          ls -R __tests__
+          echo "Files in server/:"
+          ls -l
+          echo ""
+          echo "Contents of eslint.config.js:"
+          cat eslint.config.js
         working-directory: ./server
 
-      # --- LINTING STEP (Your existing step) ---
+      - name: Check ESLint Version
+        run: npx eslint --version
+        working-directory: ./server
+
       - name: Run Server Lint
-        run: npm run lint
+        run: npx eslint . --config ./eslint.config.js
         working-directory: ./server
-        # Optional: For deep debugging if linting still fails, you can add --debug
-        # run: npm run lint -- --debug
-
 
       - name: Run Server Tests
         run: npm test

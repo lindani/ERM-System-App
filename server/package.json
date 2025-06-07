@@ -7,7 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "jest --detectOpenHandles --forceExit",
-    "lint": "eslint . --ignore-pattern '**/__tests__/**' --ignore-pattern '**/*.test.js' --ignore-pattern '**/*.spec.js'"
+    "lint": "eslint . --config ./eslint.config.js"
   },
   "keywords": [],
   "author": "",
